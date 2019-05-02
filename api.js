@@ -1,34 +1,31 @@
 const Aerospike = require('aerospike');
 const aerospikeConfig = require('./aerospike_config.js')
-const client = Aerospike.client(aerospikeConfig)
+const client = Aerospike.client(aerospikeConfig.aerospikeConfig)
 // Establish connection to the cluster
 exports.connect = function (callback) {
-client.connect(callback)
+  client.connect(callback)
 }
 // Write a record
-exports.writeRecord = function (k, v, callback) {
-let key = new Aerospike.Key(aerospikeDBParams.defaultNamespace, aerospikeDBParams.defaultSet, k)
-client.put(key, { greet: v }, function (error) {
- // Check for errors
- if (error) {
-   // An error occurred
-   return callback(error)
- } else {
-   return callback(null, 'ok')
- }
-})
+exports.writeRecord = async function (k, v) {
+  let key = new Aerospike.Key(aerospikeConfig.aerospikeDBParams.defaultNamespace, aerospikeConfig.aerospikeDBParams.defaultSet, k)
+  try {
+    await client.put(key, { greet: v })
+    return true
+  } catch (error) {
+    console.log(error)
+    return false;
+  }
 }
 // Read a record
-exports.readRecord = function (k, callback) {
-let key = new Aerospike.Key(aerospikeDBParams.defaultNamespace, aerospikeDBParams.defaultSet, k)
-client.get(key, function (error, record) {
- // Check for errors
- if (error) {
-   // An error occurred
-   return callback(error)
- } else {
-   let bins = record.bins
-   return callback(null, k + ' ' + bins.greet)
- }
-})
+exports.readRecord = async function (k) {
+  let key = new Aerospike.Key(aerospikeConfig.aerospikeDBParams.defaultNamespace, aerospikeConfig.aerospikeDBParams.defaultSet, k)
+  try {
+    let record = await client.get(key)
+    let bins = record.bins
+    return k + ' ' + bins.greet
+  } catch (error) {
+    // Check for errors
+    console.log(error)
+    return false;
+  }
 }
